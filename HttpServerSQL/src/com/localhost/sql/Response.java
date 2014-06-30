@@ -4,12 +4,13 @@ import java.io.OutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.File;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class Response {
 	private OutputStream output;
 	private Request request;
 	private String sendStr;
+	private SQLAccess sqlAcc;
 
 	public Response() {
 		this.output = null;
@@ -24,6 +25,10 @@ public class Response {
 		this.request = request;
 	}
 
+	public void setSQLAccess(SQLAccess sqlAcc) {
+		this.sqlAcc = sqlAcc;
+	}
+	
 	public void send() {
 		if ("GET".equalsIgnoreCase(this.request.getMethod())) {
 			doGET();
@@ -71,44 +76,63 @@ public class Response {
 
 	// 如果浏览器发来的请求方式为POST，则输出body中的内容
 	private void doPOST() {
-		String ecd = this.request.getEncoding();
-
-		this.sendStr = "HTTP/1.1 200 OK\r\n"
-				+ "Content-Type: text/html;charset="
-				+ this.request.getEncoding() + "\r\n" + "\r\n";
-
-		String userName = this.request.getBody()[0];
-		String password = this.request.getBody()[1];
-		if (verification()) {
-			this.sendStr = this.sendStr
-					+ "<html><title>验证结果</title><body><table border=\"1\" align=\"center\">"
-					+ "<tr><td>用户名</td><td>密码</td></tr>" + "<tr><td>"
-					+ userName + "</td><td>" + password
-					+ "</td></tr></table></body></html>";
-		} else {
-			this.sendStr = this.sendStr
-					+ "<html><title>验证结果</title><body><h3>登录失败</h3></body></html>";
+		try {
+			String display = "";
+			if (this.request.getSubmit()) {
+				switch(verification()) {
+				case 0:
+					display = "用户不存在，请先注册！";
+					break;
+				case 1:
+					display = "登录成功！";
+					break;
+				case 2:
+					display = "密码错误，请输入正确密码！";
+				}
+			} else if (this.request.getRegister()) {
+				if (verification() == 0){
+					this.sqlAcc.updata(this.request.getBody()[0], this.request.getBody()[1]);
+					display = "注册成功，请登录";
+				} else {
+					display = "用户已存在，请重新输入用户名！";
+				}
+			}
+			outputHtml(display);
+		} catch (Exception ex) {
+			System.out.println(ex.getMessage());
 		}
 	}
 
-	private boolean verification() {
-		boolean flag = false;
+	private int verification() {
+		int flag = 0;
 		try {
-			SQLAccess sqlAcc = new SQLAccess();
-			sqlAcc.accessMySQL();
-
-			while (sqlAcc.result.next()) {
+			this.sqlAcc.query();
+			while (this.sqlAcc.result.next()) {
 				if (sqlAcc.result.getString(1)
-						.equals(this.request.getBody()[0])
-						&& sqlAcc.result.getString(2).equals(
-								this.request.getBody()[1])) {
-					flag = true;
-					break;
+						.equals(this.request.getBody()[0])) {
+					if (sqlAcc.result.getString(2).equals(
+							this.request.getBody()[1])) {
+						flag = 1;
+						break;
+					} else {
+						flag = 2;
+						break;
+					}
 				}
 			}
+			this.sqlAcc.connClose();
 		} catch (SQLException ex) {
 			System.out.println(ex.getMessage());
 		}
 		return flag;
+	}
+
+	private void outputHtml(String str) {
+		String ecd = this.request.getEncoding();
+
+		this.sendStr = "HTTP/1.1 200 OK\r\n"
+				+ "Content-Type: text/html;charset=" + ecd + "\r\n" + "\r\n"
+				+ "<html><title>信息反馈</title><body><h3>" + str
+				+ "</h3></body></html>";
 	}
 }

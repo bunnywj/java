@@ -13,6 +13,8 @@ public class Request {
 	private String method;
 	private String[] body;
 	private String encoding;
+	private boolean submit;
+	private boolean register;
 
 	public Request() {
 		this.input = null;
@@ -42,6 +44,14 @@ public class Request {
 
 	public String getEncoding() {
 		return this.encoding;
+	}
+
+	public boolean getSubmit() {
+		return this.submit;
+	}
+
+	public boolean getRegister() {
+		return this.register;
 	}
 
 	public void parse() {
@@ -85,16 +95,22 @@ public class Request {
 					String tmpBody = new String(bodyContent, this.encoding);
 					System.out.println(tmpBody);
 					String[] arrStr = tmpBody.split("&");
+
 					int len = arrStr.length - 1;
+					String name = arrStr[len].split("=")[0].trim();
+					if ("Submit".equals(name)) {
+						this.submit = true;
+					}
+					if ("Register".equals(name)) {
+						this.register = true;
+					}
+
 					this.body = new String[len];
 					for (int i = 0; i < len; ++i) {
-						if ((arrStr[i].split("=")[0].length() + 1) == arrStr[i].length()) {
-							this.body[i] = "";
-						}
-						else {
-							this.body[i] = arrStr[i].split("=")[1].trim();
-						}
-						this.body[i] = URLDecoder.decode(this.body[i], this.encoding);
+						this.body[i] = arrStr[i].split("=")[1].trim();
+						this.body[i] = URLDecoder.decode(this.body[i],
+								this.encoding);
+						System.out.println(this.body[i]);
 					}
 				}
 				System.out.println();
