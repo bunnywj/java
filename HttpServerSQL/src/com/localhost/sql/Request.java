@@ -13,21 +13,18 @@ public class Request {
 	private String method;
 	private String[] body;
 	private String encoding;
+	private String cookie;
 	private boolean submit;
 	private boolean register;
-
-	public Request() {
-		this.input = null;
-		this.uri = "";
-		this.method = "";
-		this.encoding = "UTF-8";
-	}
-
+	
 	public Request(InputStream input) {
 		this.input = input;
 		this.uri = "";
 		this.method = "";
+		this.cookie = "";
 		this.encoding = "UTF-8";
+		this.submit = false;
+		this.register = false;
 	}
 
 	public String[] getBody() {
@@ -49,11 +46,15 @@ public class Request {
 	public boolean getSubmit() {
 		return this.submit;
 	}
-
+	
 	public boolean getRegister() {
 		return this.register;
 	}
-
+	
+	public String getCookie() {
+		return this.cookie;
+	}
+	
 	public void parse() {
 		try {
 
@@ -85,6 +86,8 @@ public class Request {
 					if (line.startsWith("Content-Length")) {
 						bodyLen = Integer.parseInt(line.split(":")[1].trim());
 					}
+					// 请求为POST时，读取cookie内容
+					parseCookie(line);
 				}
 				if (bodyLen != 0) {
 					// 判断有包含的body内容，则按照长度读取body字节流
@@ -95,7 +98,7 @@ public class Request {
 					String tmpBody = new String(bodyContent, this.encoding);
 					System.out.println(tmpBody);
 					String[] arrStr = tmpBody.split("&");
-
+					
 					int len = arrStr.length - 1;
 					String name = arrStr[len].split("=")[0].trim();
 					if ("Submit".equals(name)) {
@@ -104,7 +107,7 @@ public class Request {
 					if ("Register".equals(name)) {
 						this.register = true;
 					}
-
+					
 					this.body = new String[len];
 					for (int i = 0; i < len; ++i) {
 						this.body[i] = arrStr[i].split("=")[1].trim();
@@ -123,7 +126,8 @@ public class Request {
 	}
 
 	private String parseUri(String requestLine) {
-		return requestLine.split(" ")[1].trim();
+		String tmpUri = requestLine.split(" ")[1].trim();
+		return tmpUri.substring(1, tmpUri.length());
 	}
 
 	private String parseMethod(String requestLine) {
@@ -133,22 +137,26 @@ public class Request {
 	private void parseCharset(String line) {
 		boolean flag = false;
 		// 划分消息的内容，获取charset编码
-		int idx1 = line.indexOf(":");
-		if (idx1 != -1
-				&& "Accept-Charset".equals(line.substring(0, idx1).trim())) {
+		if (line.startsWith("Accept-Charset")) {
 			String[] charset = line.split(",");
 			for (int i = 0; i < charset.length; ++i) {
 				int idx = 0;
 				if ((idx = charset[i].indexOf(";")) != -1) {
 					charset[i] = charset[i].substring(0, idx);
 				}
-				if (charset[i].startsWith(encoding)) {
+				if (charset[i].startsWith(this.encoding)) {
 					flag = true;
 				}
 			}
 			if (!flag) {
-				encoding = charset[0];
+				this.encoding = charset[0];
 			}
+		}
+	}
+	
+	private void parseCookie(String line) {
+		if (line.startsWith("Cookie")) {
+			this.cookie = line.split(":")[1].trim();
 		}
 	}
 
