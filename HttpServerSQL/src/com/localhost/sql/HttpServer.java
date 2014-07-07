@@ -3,6 +3,7 @@ package com.localhost.sql;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.*;
+import java.sql.SQLException;
 import java.io.IOException;
 
 public class HttpServer {
@@ -17,13 +18,13 @@ public class HttpServer {
 			System.out.println(ex.getMessage());
 		}
 		// 读入数据库的配置信息
-		ReadFile readFile = new ReadFile();
-		readFile.readFromFile("sqlConfig.txt");
+		Config config = new Config();
+		config.fromFile("sqlConfig.txt");
+
 		// 初始化，jdbc建立数据库连接
-		SQLAccess sqlAcc = new SQLAccess();
-		sqlAcc.initDB(readFile.driver, readFile.url, readFile.user,
-				readFile.password);
-		System.out.println("JDBC建立数据库连接");
+		SQL sql = new SQL();
+		sql.initDB(config.getDriver(), config.getUrl(), config.getUser(),
+				config.getPassword());
 
 		// 启动服务器
 		ServerSocket serverSocket = new ServerSocket(Integer.parseInt(args[0]));
@@ -37,23 +38,23 @@ public class HttpServer {
 
 				System.out.println("创建线程处理请求");
 				// 创建线程
-				Runnable process = new Process(socket, sqlAcc);
+				Runnable process = new threadProcess(socket, sql);
 				new Thread(process).start();
 			}
 		} finally {
+			sql.connClose();
 			serverSocket.close();
-			sqlAcc.connClose();
 		}
 	}
 }
 
-class Process implements Runnable {
+class threadProcess implements Runnable {
 	private Socket socket;
-	private SQLAccess sqlAcc;
+	private SQL sql;
 
-	Process(Socket socket, SQLAccess sqlAcc) {
+	threadProcess(Socket socket, SQL sql) {
 		this.socket = socket;
-		this.sqlAcc = sqlAcc;
+		this.sql = sql;
 	}
 
 	public void run() {
@@ -62,22 +63,34 @@ class Process implements Runnable {
 			InputStream input = this.socket.getInputStream();
 			OutputStream output = this.socket.getOutputStream();
 			// 解析浏览器发送的请求信息
-			Request request = new Request(input);
-			request.parse();
-			// 服务器响应浏览器的请求信息
-			Response response = new Response(output);
-			response.setSQLAccess(sqlAcc);
-			response.setRequest(request);
-			response.send();
+			HttpRequest request = new HttpRequest();
+			request.parseFromStream(input);
+			HttpResponse response = new HttpResponse();
+			// 暂时没有用xml的调用
+			
 
+			
+			
+			
+			//服务器给客户端发送信息
+			try {
+				output.write(response.getResponse().getBytes(request.getEncoding()));
+			} catch (IOException ex) {
+				System.out.println(ex.getMessage());
+			}
 			input.close();
 			output.close();
-		} catch (IOException e) {
-			System.out.println(e);
-		} finally {
+			//控制台输出发送内容
+			consoleDisplay(request.getEncoding(), response.getResponse());
+		} catch (IOException ex) {
+			System.out.println(ex.getMessage());
+//		} catch (SQLException ex) {
+//			System.out.println(ex.getMessage());
+		}finally {
 			if (this.socket != null) {
 				try {
 					this.socket.close();
+
 				} catch (IOException e) {
 					this.socket = null;
 					System.out.println(e.getMessage());
@@ -86,4 +99,11 @@ class Process implements Runnable {
 		}
 	}
 
+	private void consoleDisplay(String ecd, String sendStr) {
+		System.out
+				.println("--------------------------服务器发送响应----------------------------");
+		System.out.println("服务器响应的编码方式为：" + ecd);
+		System.out.println();
+		System.out.println("内容：" + sendStr);
+	}
 }

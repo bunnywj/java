@@ -1,0 +1,37 @@
+﻿<html>
+
+<head>
+<title>登录</title>
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+<script type="text/javascript">
+function Form_Check(thisform){
+with(thisform){
+	if (content.value==null || content.value=="" || password.value==null || password.value==""){
+		content.value = null;
+		password.value = null;
+		content.focus();
+		Submit.focus();
+		return false
+	} else {
+		return true
+	}
+}
+}
+</script>
+</head>
+
+<body>
+	<h2 align="center">登录界面</h2> 
+	<hr />
+	<br /><br /><br />
+	<form method="post" action="http://localhost:8080/main.html" onsubmit="return Form_Check(this)">
+	<table align="center">
+	<tr><td>用户名</td><td><input name="content" type="text" style="width:130px;" class="textFixedSize"  /></td></tr>
+	<tr><td>密码</td><td><input name="password" type="password" style="width:130px;"class="textFixedSize"  /></td></tr>
+	<tr><td></td><td align ="right"><input name="Submit" type="submit" class="button" value=" 登录 " /></td>
+	<td><input name="Register" type="submit" class="button" value=" 注册 " /></td></tr>
+	</table>
+	</form>
+</body>
+</html>
+
