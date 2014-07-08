@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.*;
 import java.sql.SQLException;
+import java.util.Hashtable;
 import java.io.IOException;
 
 public class HttpServer {
@@ -25,6 +26,10 @@ public class HttpServer {
 		SQL sql = new SQL();
 		sql.initDB(config.getDriver(), config.getUrl(), config.getUser(),
 				config.getPassword());
+
+		// 读入XML配置信息
+		ParseXML xml = new ParseXML();
+		xml.parseXML("action.xml");
 
 		// 启动服务器
 		ServerSocket serverSocket = new ServerSocket(Integer.parseInt(args[0]));
@@ -66,7 +71,23 @@ class threadProcess implements Runnable {
 			HttpRequest request = new HttpRequest();
 			request.parseFromStream(input);
 			HttpResponse response = new HttpResponse();
-			// 暂时没有用xml的调用
+
+			Hashtable<String, String> actionTable = this.xml.getActionTable();
+			String actionClass = actionTable.get(request.getRequestURI());
+			if ("Login".equalsIgnoreCase(actionClass)) {
+				new Login().service(request, response);
+			} else if ("Skip".equalsIgnoreCase(actionClass)) {
+				new Skip().service(request, response);
+			} else if ("Main".equalsIgnoreCase(actionClass)) {
+				new Main(this.sql).service(request, response);
+			} else if ("Modify".equalsIgnoreCase(actionClass)) {
+				if ("GET".equalsIgnoreCase(request.getMethod())) {
+					new Login().service(request, response);
+				} else if ("POST".equalsIgnoreCase(request.getMethod())) {
+					new Modify(this.sql).service(request, response);
+				}
+			}
+
 			
 
 			
