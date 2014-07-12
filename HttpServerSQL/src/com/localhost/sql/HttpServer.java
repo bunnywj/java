@@ -3,7 +3,6 @@ package com.localhost.sql;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.*;
-import java.sql.SQLException;
 import java.util.Hashtable;
 import java.io.IOException;
 
@@ -43,12 +42,13 @@ public class HttpServer {
 
 				System.out.println("创建线程处理请求");
 				// 创建线程
-				Runnable process = new threadProcess(socket, sql);
+				Runnable process = new threadProcess(socket, sql, xml);
 				new Thread(process).start();
 			}
 		} finally {
 			sql.connClose();
 			serverSocket.close();
+			System.exit(1);
 		}
 	}
 }
@@ -56,10 +56,12 @@ public class HttpServer {
 class threadProcess implements Runnable {
 	private Socket socket;
 	private SQL sql;
+	private ParseXML xml;
 
-	threadProcess(Socket socket, SQL sql) {
+	threadProcess(Socket socket, SQL sql, ParseXML xml) {
 		this.socket = socket;
 		this.sql = sql;
+		this.xml = xml;
 	}
 
 	public void run() {
@@ -71,43 +73,56 @@ class threadProcess implements Runnable {
 			HttpRequest request = new HttpRequest();
 			request.parseFromStream(input);
 			HttpResponse response = new HttpResponse();
+			//查询属于哪个处理页面
 
 			Hashtable<String, String> actionTable = this.xml.getActionTable();
 			String actionClass = actionTable.get(request.getRequestURI());
 			if ("Login".equalsIgnoreCase(actionClass)) {
+				System.out.println("调用登陆页面");
 				new Login().service(request, response);
-			} else if ("Skip".equalsIgnoreCase(actionClass)) {
-				new Skip().service(request, response);
+			} else if ("SkipMain".equalsIgnoreCase(actionClass)) {
+				System.out.println("调用跳转页面至用户主页");
+				new Skip("main.html").service(request, response);
 			} else if ("Main".equalsIgnoreCase(actionClass)) {
+				System.out.println("调用用户主页");
 				new Main(this.sql).service(request, response);
 			} else if ("Modify".equalsIgnoreCase(actionClass)) {
-				if ("GET".equalsIgnoreCase(request.getMethod())) {
-					new Login().service(request, response);
-				} else if ("POST".equalsIgnoreCase(request.getMethod())) {
-					new Modify(this.sql).service(request, response);
-				}
+				System.out.println("调用修改页面");
+				new Modify().service(request, response);
+			} else if ("SkipAlter".equalsIgnoreCase(actionClass)) {
+				System.out.println("调用跳转页面至更改数据库信息页面");
+				new Skip("alter.html").service(request, response);
+			} else if ("Alter".equalsIgnoreCase(actionClass)) {
+				System.out.println("调用更改数据库页面，并返回用户主页");
+				new Alter(this.sql).service(request, response);
+			} else if ("SkipRegister".equalsIgnoreCase(actionClass)) {
+				System.out.println("调用注册页面");
+				new Skip("register.html").service(request, response);
+			} else if ("Register".equalsIgnoreCase(actionClass)) {
+				System.out.println("更新数据库并返回用户主页");
+				new Register(this.sql).service(request, response);
+			} else {
+				response.setStatus(404, "File NOT Fount");
+				response.setEncoding("text/html", request.getEncoding());
+				response.setHeader("Content-Type", response.getEncoding());
+				response.setCookie("Set-Cookie", request.getCookies());
+				response.setResponse("<html><body><h1>File Not Found</h1></body></html>");				
 			}
 
-			
-
-			
-			
-			
-			//服务器给客户端发送信息
+			// 服务器给客户端发送信息
 			try {
-				output.write(response.getResponse().getBytes(request.getEncoding()));
+				output.write(response.getResponse().getBytes(
+						request.getEncoding()));
 			} catch (IOException ex) {
 				System.out.println(ex.getMessage());
 			}
 			input.close();
 			output.close();
-			//控制台输出发送内容
+			// 控制台输出发送内容
 			consoleDisplay(request.getEncoding(), response.getResponse());
 		} catch (IOException ex) {
 			System.out.println(ex.getMessage());
-//		} catch (SQLException ex) {
-//			System.out.println(ex.getMessage());
-		}finally {
+		} finally {
 			if (this.socket != null) {
 				try {
 					this.socket.close();

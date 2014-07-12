@@ -9,21 +9,21 @@ public class Login implements Servlet {
 	public void service(HttpRequest request, HttpResponse response) {
 		try {
 			String ecd = request.getEncoding();
-			File file = new File(request.getRequestURI());
+			File file = new File("login.txt");
 
-			if (file.exists()) {
-				FileInputStream inFile = new FileInputStream(file);
-				byte[] buf = new byte[inFile.available()];
-				inFile.read(buf);
-				inFile.close();
-				response.setStatus(200, "OK");
-				response.setEncoding("text/html", ecd);
-				response.setResponse(new String(buf, ecd));
-			} else {
-				response.setStatus(404, "File NOT Fount");
-				response.setEncoding("text/html", ecd);
-				response.setResponse("<html><body><h1>File Not Found</h1></body></html>");
+			if (!file.exists()) {
+				throw new IOException();
 			}
+
+			FileInputStream inFile = new FileInputStream(file);
+			byte[] buf = new byte[inFile.available()];
+			inFile.read(buf);
+			inFile.close();
+			response.setStatus(200, "OK");
+			response.setEncoding("text/html", ecd);
+			response.setHeader("Content-Type", response.getEncoding());
+			response.setHeader("Set-Cookie", request.getCookies());
+			response.setResponse(new String(buf, ecd));
 		} catch (IOException ex) {
 			System.out.println(ex.getMessage());
 		}

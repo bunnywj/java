@@ -8,7 +8,6 @@
 package com.localhost.sql;
 
 import java.io.InputStream;
-import java.net.URLDecoder;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Hashtable;
@@ -30,16 +29,16 @@ public class HttpRequest {
 	//消息头中的cookie信息
 	private String cookies;
 	//post提交的参数值，参数名称，参数值
-	private Hashtable<String, String> parameter;
+	private String parameter;
 
 	public HttpRequest() {
 		this.headers = null;
-		this.header = null;
-		this.URI = null;
-		this.method = null;
+		this.header = "";
+		this.URI = "";
+		this.method = "";
 		this.encoding = "UTF-8";
-		this.cookies = null;
-		this.parameter = null;
+		this.cookies = "";
+		this.parameter = "";
 	}
 
 	public String getRequestURI() {
@@ -70,12 +69,8 @@ public class HttpRequest {
 		return this.headers.get(name);
 	}
 
-	public Enumeration<String> getParameterNames() {
-		return this.parameter.keys();
-	}
-
-	public String getParameterValue(String name) {
-		return this.parameter.get(name);
+	public String getParameter() {
+		return this.parameter;
 	}
 	
 	private String[] readHttpMsg(InputStream input) throws IOException {
@@ -96,7 +91,8 @@ public class HttpRequest {
 			this.header = arrMsg[0];
 
 			this.headers = new Hashtable<String, String>();
-			for (int i = 1; i < arrMsg.length && !arrMsg[i].isEmpty(); ++i) {
+			int i = 1;
+			for (; i < arrMsg.length && !arrMsg[i].isEmpty(); ++i) {
 				this.headers.put(arrMsg[i].split(":")[0],
 						arrMsg[i].split(":")[1]);
 			}
@@ -111,7 +107,7 @@ public class HttpRequest {
 				parseCookie();
 			}
 			if (this.headers.get("Content-Length") != null) {
-				parseBody(arrMsg[arrMsg.length - 1]);
+				parseBody(arrMsg, i);
 			}
 		} catch (IOException ex) {
 			System.out.println(ex.getMessage());
@@ -149,14 +145,9 @@ public class HttpRequest {
 		this.cookies = this.headers.get("cookie").split(":")[1].trim();
 	}
 
-	private void parseBody(String body) throws UnsupportedEncodingException {
-		this.parameter = new Hashtable<String, String>();
-		String[] arrStr = body.split("&");
-		for (int i = 0; i < arrStr.length; ++i) {
-			String name = arrStr[i].split("=")[0].trim();
-			String value = URLDecoder.decode(arrStr[i].split("=")[1].trim(),
-					this.encoding);
-			this.parameter.put(name, value);
+	private void parseBody(String[] body, int idx) throws UnsupportedEncodingException {
+		for (int i = idx + 1; i < body.length; ++i) {
+			this.parameter = this.parameter + body[i] + "&";	
 		}
 	}
 }

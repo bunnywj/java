@@ -1,13 +1,13 @@
 package com.localhost.sql;
 
-import java.sql.SQLException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.sql.SQLException;
 
-public class Main implements Servlet {
+public class Register implements Servlet {
 	private SQL sql;
 
-	Main(SQL sql) {
+	Register(SQL sql) {
 		this.sql = sql;
 	}
 
@@ -32,27 +32,19 @@ public class Main implements Servlet {
 			}
 			// 服务器响应浏览器的字符串信息
 			String strHtml = "";
-			switch (this.sql.checkout(userName, password)) {
-			case 0:
-				strHtml = "<h3>用户不存在，请先注册！</h3><br /><br />"
+			if (this.sql.checkout(userName, password) == 0) {
+				this.sql.insert(userName, password);
+				strHtml = "<h3>注册成功，请登录</h3><br /><br />"
 						+ "<p><a href=\"http://localhost:8080/login.html\">登录界面</a></p>";
-				break;
-			case 1:
-				strHtml = "<h3>您的用户名是："
-						+ userName
-						+ "</h3><br /><br />"
-						+ "<p><a href=\"http://localhost:8080/modify.html\">修改密码</a></p>";
-				response.setHeader("Set-Cookie", request.getCookies());
-				break;
-			case 2:
-				strHtml = "<h3>密码错误，请输入正确密码！</h3><br /><br />"
+			} else {
+				strHtml = "<h3>用户已存在，请重新输入用户名！</h3><br /><br />"
 						+ "<p><a href=\"http://localhost:8080/login.html\">登录界面</a></p>";
-				break;
 			}
 
 			response.setStatus(200, "OK");
 			response.setEncoding("text/html", request.getEncoding());
 			response.setHeader("Content-Type", response.getEncoding());
+			response.setHeader("Set-Cookie", request.getCookies());
 			response.setResponse("<html><title>登录信息</title><body>" + strHtml
 					+ "</body></html>");
 		} catch (SQLException ex) {
@@ -60,6 +52,7 @@ public class Main implements Servlet {
 		} catch (UnsupportedEncodingException ex) {
 			System.out.println(ex.getMessage());
 		}
+
 	}
 
 }
