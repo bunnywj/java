@@ -1,5 +1,6 @@
 package com.localhost.sql;
 
+
 import java.sql.*;
 
 public class SQL {
@@ -38,16 +39,7 @@ public class SQL {
 	public ResultSet query() throws SQLException {
 		String querySql = "select * from TEST_LOGIN";
 		PreparedStatement preStatement = conn.prepareStatement(querySql);
-		ResultSet result = preStatement.executeQuery();
-		if (result.next())
-		{
-			System.out.println("数据库查询成功");	
-		} else {
-			System.out.println("数据库查询不成功");
-			System.exit(1);
-		}
-
-		return result;
+		return preStatement.executeQuery();
 	}
 
 	public ResultSet insert(String userName, String password)

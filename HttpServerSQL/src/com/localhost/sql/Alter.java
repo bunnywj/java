@@ -5,12 +5,6 @@ import java.net.URLDecoder;
 import java.sql.SQLException;
 
 public class Alter implements Servlet {
-	private SQL sql;
-
-	Alter(SQL sql) {
-		this.sql = sql;
-	}
-
 	@Override
 	public void service(HttpRequest request, HttpResponse response) {
 		try {
@@ -36,14 +30,14 @@ public class Alter implements Servlet {
 			}
 
 			String strHtml = "";
-			if (this.sql.checkout(userName, oldPassword) == 2) {
+			if (HttpServer.sql.checkout(userName, oldPassword) == 2) {
 				strHtml = "<html><title>登录信息</title><body><h3>"
 						+ "<h3>您输入的旧密码不正确！请重新输入</h3><br /><br />"
 						+ "<p><a href=\"http://localhost:8080/modify.html\">修改密码</a></p></body></html>";
 			} else {
-				this.sql.updata(userName, newPassword);
+				HttpServer.sql.updata(userName, newPassword);
 				strHtml = "<html><head><meta http-equiv=\"refresh\" content=\"0;"
-						+ "url=http://localhost:8080/main.html\"></head><title>登录信息</title><body></body></html>";
+						+ "url=http://localhost:8080/main.html\"></head><title>修改密码</title><body><h3>密码修改成功！</h3></body></html>";
 				response.setCookie("password", newPassword);
 			}
 			// 设置HTTP协议响应头

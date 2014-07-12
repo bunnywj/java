@@ -5,12 +5,6 @@ import java.net.URLDecoder;
 import java.sql.SQLException;
 
 public class Register implements Servlet {
-	private SQL sql;
-
-	Register(SQL sql) {
-		this.sql = sql;
-	}
-
 	@Override
 	public void service(HttpRequest request, HttpResponse response) {
 		try {
@@ -32,8 +26,8 @@ public class Register implements Servlet {
 			}
 			// 服务器响应浏览器的字符串信息
 			String strHtml = "";
-			if (this.sql.checkout(userName, password) == 0) {
-				this.sql.insert(userName, password);
+			if (HttpServer.sql.checkout(userName, password) == 0) {
+				HttpServer.sql.insert(userName, password);
 				strHtml = "<h3>注册成功，请登录</h3><br /><br />"
 						+ "<p><a href=\"http://localhost:8080/login.html\">登录界面</a></p>";
 			} else {

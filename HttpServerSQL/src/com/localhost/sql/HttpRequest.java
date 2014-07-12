@@ -7,6 +7,7 @@
 
 package com.localhost.sql;
 
+
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -73,6 +74,7 @@ public class HttpRequest {
 		return this.parameter;
 	}
 	
+	//读取浏览器发送的请求，一次读取最大字节为65535
 	private String[] readHttpMsg(InputStream input) throws IOException {
 		byte[] byteStream = new byte[MAX_VALUE];
 		int httpMsgLen = input.read(byteStream);
@@ -80,30 +82,30 @@ public class HttpRequest {
 		System.out
 				.println("--------------------------浏览器发送请求----------------------------");
 		System.out.println(httpMsg);
-
+		//将读取的请求按行存入字符串数组
 		return httpMsg.split("\r\n");
 	}
 
 	public void parseFromStream(InputStream input) {
 		try {
 			String[] arrMsg = readHttpMsg(input);
-
+			//请求第一行为请求行
 			this.header = arrMsg[0];
-
+			//获取请求的消息头，消息名称和消息内容对应存储在哈希表中
 			this.headers = new Hashtable<String, String>();
 			int i = 1;
 			for (; i < arrMsg.length && !arrMsg[i].isEmpty(); ++i) {
 				this.headers.put(arrMsg[i].split(":")[0],
 						arrMsg[i].split(":")[1]);
 			}
-
+			
 			parseURI();
 			parseMethod();
 
 			if (this.headers.get("Accept-Charset") != null) {
 				parseCharset();
 			}
-			if (this.headers.get("cookie") != null) {
+			if (this.headers.get("Cookie") != null) {
 				parseCookie();
 			}
 			if (this.headers.get("Content-Length") != null) {
@@ -142,7 +144,11 @@ public class HttpRequest {
 	}
 
 	private void parseCookie() {
-		this.cookies = this.headers.get("cookie").split(":")[1].trim();
+		this.cookies = this.headers.get("Cookie").trim();
+		if (this.cookies.indexOf(";") != -1){
+			this.cookies = this.cookies.split(";")[1].trim();
+		}
+ 
 	}
 
 	private void parseBody(String[] body, int idx) throws UnsupportedEncodingException {

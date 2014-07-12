@@ -5,12 +5,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
 public class Main implements Servlet {
-	private SQL sql;
-
-	Main(SQL sql) {
-		this.sql = sql;
-	}
-
 	@Override
 	public void service(HttpRequest request, HttpResponse response) {
 		try {
@@ -32,7 +26,7 @@ public class Main implements Servlet {
 			}
 			// 服务器响应浏览器的字符串信息
 			String strHtml = "";
-			switch (this.sql.checkout(userName, password)) {
+			switch (HttpServer.sql.checkout(userName, password)) {
 			case 0:
 				strHtml = "<h3>用户不存在，请先注册！</h3><br /><br />"
 						+ "<p><a href=\"http://localhost:8080/login.html\">登录界面</a></p>";

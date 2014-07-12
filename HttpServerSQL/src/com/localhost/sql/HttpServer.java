@@ -7,6 +7,7 @@ import java.util.Hashtable;
 import java.io.IOException;
 
 public class HttpServer {
+	public static SQL sql;
 
 	public static void main(String[] args) throws Exception {
 		// 检查参数，如果参数不是端口号和html文件路径，则提示并抛出异常
@@ -22,7 +23,7 @@ public class HttpServer {
 		config.fromFile("sqlConfig.txt");
 
 		// 初始化，jdbc建立数据库连接
-		SQL sql = new SQL();
+		sql = new SQL();
 		sql.initDB(config.getDriver(), config.getUrl(), config.getUser(),
 				config.getPassword());
 
@@ -42,7 +43,7 @@ public class HttpServer {
 
 				System.out.println("创建线程处理请求");
 				// 创建线程
-				Runnable process = new threadProcess(socket, sql, xml);
+				Runnable process = new threadProcess(socket, xml);
 				new Thread(process).start();
 			}
 		} finally {
@@ -55,12 +56,10 @@ public class HttpServer {
 
 class threadProcess implements Runnable {
 	private Socket socket;
-	private SQL sql;
 	private ParseXML xml;
 
-	threadProcess(Socket socket, SQL sql, ParseXML xml) {
+	threadProcess(Socket socket, ParseXML xml) {
 		this.socket = socket;
-		this.sql = sql;
 		this.xml = xml;
 	}
 
@@ -73,42 +72,21 @@ class threadProcess implements Runnable {
 			HttpRequest request = new HttpRequest();
 			request.parseFromStream(input);
 			HttpResponse response = new HttpResponse();
-			//查询属于哪个处理页面
+			// 查询属于哪个处理页面
 
-			Hashtable<String, String> actionTable = this.xml.getActionTable();
-			String actionClass = actionTable.get(request.getRequestURI());
-			if ("Login".equalsIgnoreCase(actionClass)) {
-				System.out.println("调用登陆页面");
-				new Login().service(request, response);
-			} else if ("SkipMain".equalsIgnoreCase(actionClass)) {
-				System.out.println("调用跳转页面至用户主页");
-				new Skip("main.html").service(request, response);
-			} else if ("Main".equalsIgnoreCase(actionClass)) {
-				System.out.println("调用用户主页");
-				new Main(this.sql).service(request, response);
-			} else if ("Modify".equalsIgnoreCase(actionClass)) {
-				System.out.println("调用修改页面");
-				new Modify().service(request, response);
-			} else if ("SkipAlter".equalsIgnoreCase(actionClass)) {
-				System.out.println("调用跳转页面至更改数据库信息页面");
-				new Skip("alter.html").service(request, response);
-			} else if ("Alter".equalsIgnoreCase(actionClass)) {
-				System.out.println("调用更改数据库页面，并返回用户主页");
-				new Alter(this.sql).service(request, response);
-			} else if ("SkipRegister".equalsIgnoreCase(actionClass)) {
-				System.out.println("调用注册页面");
-				new Skip("register.html").service(request, response);
-			} else if ("Register".equalsIgnoreCase(actionClass)) {
-				System.out.println("更新数据库并返回用户主页");
-				new Register(this.sql).service(request, response);
-			} else {
+			Hashtable<String, Object> objectTable = this.xml.getObjectTable();
+			Servlet servlet = (Servlet) objectTable
+					.get(request.getRequestURI());
+			if (servlet == null) {
 				response.setStatus(404, "File NOT Fount");
 				response.setEncoding("text/html", request.getEncoding());
 				response.setHeader("Content-Type", response.getEncoding());
 				response.setCookie("Set-Cookie", request.getCookies());
-				response.setResponse("<html><body><h1>File Not Found</h1></body></html>");				
+				response.setResponse("<html><body><h1>File Not Found</h1></body></html>");
+			} else {
+				servlet.service(request, response);
 			}
-
+			
 			// 服务器给客户端发送信息
 			try {
 				output.write(response.getResponse().getBytes(

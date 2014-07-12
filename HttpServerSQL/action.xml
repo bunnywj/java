@@ -1,43 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <struts>
 	<action>
-		<name>login</name>
-		<class>Login</class>
-		<method>service</method>
+		<URLName></URLName>
+		<ObjectName>com.localhost.sql.Login</ObjectName>
 	</action>
 	<action>
-		<name>skipmain</name>
-		<class>SkipMain</class>
-		<method>service</method>
+		<URLName>skipmain.html</URLName>
+		<ObjectName>com.localhost.sql.SkipMain</ObjectName>
 	</action>
 	<action>
-		<name>modify</name>
-		<class>Modify</class>
-		<method>service</method>
+		<URLName>modify.html</URLName>
+		<ObjectName>com.localhost.sql.Modify</ObjectName>
 	</action>
 	<action>
-		<name>main</name>
-		<class>Main</class>
-		<method>service</method>
+		<URLName>main.html</URLName>
+		<ObjectName>com.localhost.sql.Main</ObjectName>
 	</action>
 	<action>
-		<name>skipalter</name>
-		<class>SkipAlter</class>
-		<method>service</method>
+		<URLName>skipalter.html</URLName>
+		<ObjectName>com.localhost.sql.SkipAlter</ObjectName>
 	</action>
 	<action>
-		<name>alter</name>
-		<class>Alter</class>
-		<method>service</method>
+		<URLName>alter.html</URLName>
+		<ObjectName>com.localhost.sql.Alter</ObjectName>
 	</action>
 	<action>
-		<name>register</name>
-		<class>Register</class>
-		<method>service</method>
+		<URLName>register.html</URLName>
+		<ObjectName>com.localhost.sql.Register</ObjectName>
 	</action>
 	<action>
-		<name>skipregister</name>
-		<class>SkipRegister</class>
-		<method>service</method>
+		<URLName>skipregister.html</URLName>
+		<ObjectName>com.localhost.sql.SkipRegister</ObjectName>
 	</action>
 </struts>

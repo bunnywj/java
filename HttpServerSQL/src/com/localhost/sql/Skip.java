@@ -1,11 +1,8 @@
 package com.localhost.sql;
 
 public class Skip implements Servlet {
-	private String url;
+	public String url;
 
-	Skip(String url) {
-		this.url = url;
-	}
 	public void service(HttpRequest request, HttpResponse response) {
 		extractInfo(request.getCookies(), response);
 		extractInfo(request.getParameter(), response);
@@ -27,4 +24,5 @@ public class Skip implements Servlet {
 				response.setCookie(name, value);
 			}
 		}
-	}}
+	}
+}
