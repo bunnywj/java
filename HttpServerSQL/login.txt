@@ -1,0 +1,48 @@
+﻿<html>
+
+<head>
+<title>登录</title>
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+<script type="text/javascript">
+function Form_Submit(){
+var x=document.getElementById("Form");
+	 	if (x.elements[0].value==null || x.elements[0].value=="" || x.elements[1].value==null || x.elements[1].value==""){
+		x.elements[0].value = "";
+		x.elements[1].value = "";
+		x.elements[0].focus();
+		x.elements[2].focus();
+	} else {
+		x.action="http://localhost:8080/skipmain.html";
+		x.submit();
+	}
+}
+
+function Form_Register(){
+var x=document.getElementById("Form");
+	 	if (x.elements[0].value==null || x.elements[0].value=="" || x.elements[1].value==null || x.elements[1].value==""){
+		x.elements[0].value = "";
+		x.elements[1].value = "";
+		x.elements[0].focus();
+		x.elements[3].focus();
+	} else {
+		x.action ="http://localhost:8080/skipregister.html";
+		x.submit()
+	}
+}
+</script>
+</head>
+
+<body>
+	<h2 align="center">登录界面</h2> 
+	<hr />
+	<br /><br /><br />
+	<form id="Form" method="post" enctype="text/plain">
+	<table align="center">
+	<tr><td>用户名</td><td><input id="username" name="username" type="text" style="width:130px;" class="textFixedSize"  /></td></tr>
+	<tr><td>密码</td><td><input id="password" name="password" type="password" style="width:130px;"class="textFixedSize"  /></td></tr>
+	<tr><td></td><td align ="right"><input id="sub" type="button" class="button" value=" 登录 " onclick="Form_Submit()"/></td>
+	<td><input id="reg" type="button" class="button" value=" 注册 " onclick="Form_Register()"/></td></tr>
+	</table>
+	</form>
+</body>
+</html>

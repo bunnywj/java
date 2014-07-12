@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<struts>
+	<action>
+		<name>login</name>
+		<class>Login</class>
+		<method>service</method>
+	</action>
+	<action>
+		<name>skipmain</name>
+		<class>SkipMain</class>
+		<method>service</method>
+	</action>
+	<action>
+		<name>modify</name>
+		<class>Modify</class>
+		<method>service</method>
+	</action>
+	<action>
+		<name>main</name>
+		<class>Main</class>
+		<method>service</method>
+	</action>
+	<action>
+		<name>skipalter</name>
+		<class>SkipAlter</class>
+		<method>service</method>
+	</action>
+	<action>
+		<name>alter</name>
+		<class>Alter</class>
+		<method>service</method>
+	</action>
+	<action>
+		<name>register</name>
+		<class>Register</class>
+		<method>service</method>
+	</action>
+	<action>
+		<name>skipregister</name>
+		<class>SkipRegister</class>
+		<method>service</method>
+	</action>
+</struts>
